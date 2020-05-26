@@ -54,16 +54,6 @@ class ResidualBlock(nn.Module):
         return x
 
 
-class ResBlock(nn.Sequential):
-    def __init__(self, in_channels, num_repeat, norm_layer):
-        layers = []
-        out_channels = in_channels * 2
-        layers.append(Conv2dBNLeakyReLU(in_channels, out_channels, 3, 2, 1, False, norm_layer))
-        for i in range(num_repeat):
-            layers.append(ResidualBlock(out_channels, norm_layer))
-        super(ResBlock, self).__init__(*layers)
-
-
 class Darknet53(nn.Module):
     def __init__(self, num_classes=1000, norm_layer=None):
         super(Darknet53, self).__init__()
@@ -74,7 +64,7 @@ class Darknet53(nn.Module):
         in_channels = 32
         for i, num_repeat in enumerate(self.num_blocks):
             setattr(self, "layer%d" % (i + 1),
-                    ResBlock(in_channels, num_repeat, norm_layer))
+                    self._make_layers(in_channels, num_repeat, norm_layer))
             in_channels *= 2
         # self.avgpool = nn.AdaptiveAvgPool2d((1, 1))  # 用mean代替
         self.fc = nn.Linear(in_channels, num_classes)
@@ -86,6 +76,15 @@ class Darknet53(nn.Module):
         x = torch.mean(x, dim=(2, 3))
         x = self.fc(x)
         return x
+
+    @staticmethod
+    def _make_layers(in_channels, num_repeat, norm_layer):
+        layers = []
+        out_channels = in_channels * 2
+        layers.append(Conv2dBNLeakyReLU(in_channels, out_channels, 3, 2, 1, False, norm_layer))
+        for i in range(num_repeat):
+            layers.append(ResidualBlock(out_channels, norm_layer))
+        return nn.Sequential(*layers)
 
 
 def darknet53(pretrained=False, progress=True, num_classes=1000, **kwargs):

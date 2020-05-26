@@ -87,11 +87,9 @@ class Darknet53(nn.Module):
         return nn.Sequential(*layers)
 
 
-def darknet53(pretrained=False, progress=True, num_classes=1000, **kwargs):
-    strict = kwargs.pop("strict", True)
-
-    model = Darknet53(num_classes, **kwargs)
+def darknet53(pretrained=False, progress=True, num_classes=1000, norm_layer=None):
+    model = Darknet53(num_classes, norm_layer)
     if pretrained:
         state_dict = load_state_dict_from_url(model_url, progress=progress)
-        model.load_state_dict(state_dict, strict)
+        model.load_state_dict(state_dict)
     return model

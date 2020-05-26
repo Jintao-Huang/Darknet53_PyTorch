@@ -34,6 +34,7 @@ class Conv2dBNLeakyReLU(nn.Sequential):
         super(Conv2dBNLeakyReLU, self).__init__(
             nn.Conv2d(in_channels, out_channels, kernel_size, stride, padding, bias=bias),
             norm_layer(out_channels),
+            # In the official implementation, negative_slope is 0.1!!!
             nn.LeakyReLU(negative_slope=0.01, inplace=True)
         )
 
